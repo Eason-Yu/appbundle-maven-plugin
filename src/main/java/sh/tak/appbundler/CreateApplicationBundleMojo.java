@@ -27,7 +27,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.xml.stream.XMLInputFactory;
+
 import org.apache.commons.lang.SystemUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
@@ -48,6 +50,7 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.velocity.VelocityComponent;
+
 import sh.tak.appbundler.logging.MojoLogChute;
 
 /**
@@ -578,8 +581,9 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
      * @throws MojoExecutionException
      */
     private void writeInfoPlist(File infoPlist, List<String> files) throws MojoExecutionException {
-        Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, new MojoLogChute(this));
-        Velocity.setProperty("file.resource.loader.path", TARGET_CLASS_ROOT);
+    	File targetDir = new File (project.getBasedir(), TARGET_CLASS_ROOT);
+    	Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, new MojoLogChute(this));        
+        Velocity.setProperty("file.resource.loader.path", targetDir.getAbsolutePath());
 
         try {
             Velocity.init();
@@ -648,7 +652,8 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
 
         velocityContext.put("classpath", jarFiles.toString());
         try {
-            File sourceInfoPlist = new File(TARGET_CLASS_ROOT, dictionaryFile);
+        	        	
+            File sourceInfoPlist = new File(targetDir, dictionaryFile);
 
             if (sourceInfoPlist.exists() && sourceInfoPlist.isFile()) {
                 String encoding = detectEncoding(sourceInfoPlist);
@@ -768,12 +773,13 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
 
     private static File searchFile(String path, File basedir) {
         File f = new File(basedir, path);
-
+        
         if (f.exists()) {
             return f;
         }
-
-        f = new File(TARGET_CLASS_ROOT, path);
+        File targetDir = new File (basedir, TARGET_CLASS_ROOT);
+        
+        f = new File(targetDir, path);
 
         if (f.exists()) {
             return f;
